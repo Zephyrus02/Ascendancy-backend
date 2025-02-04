@@ -12,7 +12,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite's default port
+  origin: '*',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Accept']
 }));
@@ -27,6 +27,7 @@ app.use((req, _res, next) => {
 
 // Add this before other routes
 app.get('/', (req, res) => {
+  console.log('Server is running');
   res.json({ message: 'Server is running' });
 });
 
