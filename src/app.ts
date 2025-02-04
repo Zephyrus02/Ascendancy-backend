@@ -25,6 +25,11 @@ app.use((req, _res, next) => {
   next();
 });
 
+// Add this before other routes
+app.get('/api', (req, res) => {
+  res.json({ message: 'Server is running' });
+});
+
 // Routes
 app.use('/api/teams', teamRoutes);
 
