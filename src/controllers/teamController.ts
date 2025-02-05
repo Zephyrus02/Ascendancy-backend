@@ -5,8 +5,8 @@ export const createTeam = async (req: Request, res: Response): Promise<void> => 
   try {
     console.log('Received request body:', req.body);
 
-    if (!req.body.userId) {
-      res.status(400).json({ message: 'User ID is required' });
+    if (!req.body.userId || !req.body.username) {
+      res.status(400).json({ message: 'User ID and username are required' });
       return;
     }
 
