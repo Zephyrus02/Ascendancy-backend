@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db';
 import teamRoutes from './routes/teamRoutes';
 import userRoutes from './routes/userRoutes';
+import orderRoutes from './routes/orderRoutes';
 
 dotenv.config();
 
@@ -14,12 +15,13 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT'], // Add PUT
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Accept']
 }));
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 app.use((req, _res, next) => {
   console.log(`${req.method} ${req.url}`);
@@ -35,6 +37,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/teams', teamRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Connect to database
 connectDB();

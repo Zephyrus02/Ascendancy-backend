@@ -102,3 +102,18 @@ export const updateTeam = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ message: err.message });
   }
 };
+
+export const deleteTeam = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const team = await Team.findByIdAndDelete(req.params.id);
+    
+    if (!team) {
+      res.status(404).json({ message: 'Team not found' });
+      return;
+    }
+
+    res.json({ message: 'Team deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+};
