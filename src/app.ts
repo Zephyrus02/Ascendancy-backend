@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db';
 import teamRoutes from './routes/teamRoutes';
+import userRoutes from './routes/userRoutes';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/teams', teamRoutes);
+app.use('/api/users', userRoutes);
 
 // Connect to database
 connectDB();
