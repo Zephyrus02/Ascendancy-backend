@@ -14,7 +14,7 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT'], // Add PUT
   allowedHeaders: ['Content-Type', 'Accept']
 }));
 app.use(helmet());

@@ -77,3 +77,28 @@ export const getTeamByUserId = async (req: Request, res: Response): Promise<void
     res.status(500).json({ message: err.message });
   }
 };
+
+export const updateTeam = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    console.log('Updating team with ID:', id);
+    console.log('Update payload:', req.body);
+
+    const team = await Team.findByIdAndUpdate(
+      id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
+
+    if (!team) {
+      res.status(404).json({ message: 'Team not found' });
+      return;
+    }
+
+    console.log('Updated team:', team);
+    res.json(team);
+  } catch (err: any) {
+    console.error('Update error:', err);
+    res.status(500).json({ message: err.message });
+  }
+};
