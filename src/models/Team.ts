@@ -5,7 +5,8 @@ const teamMemberSchema = new mongoose.Schema({
   valorantId: { type: String, required: true },
   rank: { type: String, required: true },
   role: { type: String, enum: ['Captain', 'Main', 'Substitute'], required: true },
-  discordId: { type: String, required: true }
+  discordId: { type: String, required: true },
+  userId: { type: String } // Add userId field
 });
 
 const teamSchema = new mongoose.Schema({

@@ -7,6 +7,7 @@ import { connectDB } from './config/db';
 import teamRoutes from './routes/teamRoutes';
 import userRoutes from './routes/userRoutes';
 import orderRoutes from './routes/orderRoutes';
+import matchRoutes from './routes/matchRoutes';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.get('/', (req, res) => {
 app.use('/api/teams', teamRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/matches', matchRoutes);
 
 // Connect to database
 connectDB();
