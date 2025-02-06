@@ -4,6 +4,7 @@ export interface IMatch extends Document {
   team1: {
     id: string;
     name: string;
+    logo: string;  // Add logo field
     captain: {
       id: string;
       username: string;
@@ -12,6 +13,7 @@ export interface IMatch extends Document {
   team2: {
     id: string;
     name: string;
+    logo: string;  // Add logo field
     captain: {
       id: string;
       username: string;
@@ -27,6 +29,7 @@ const matchSchema = new mongoose.Schema<IMatch>({
   team1: {
     id: { type: String, required: true },
     name: { type: String, required: true },
+    logo: { type: String, required: true },  // Add logo field
     captain: {
       id: { type: String, required: true },  // This will now store member _id
       username: { type: String, required: true }
@@ -35,6 +38,7 @@ const matchSchema = new mongoose.Schema<IMatch>({
   team2: {
     id: { type: String, required: true },
     name: { type: String, required: true },
+    logo: { type: String, required: true },  // Add logo field
     captain: {
       id: { type: String, required: true },  // This will now store member _id
       username: { type: String, required: true }

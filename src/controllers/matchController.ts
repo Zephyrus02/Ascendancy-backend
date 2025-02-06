@@ -10,3 +10,15 @@ export const createMatch = async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ message: 'Error creating match' });
   }
 };
+
+export const getMatches = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const matches = await Match.find()
+      .sort({ date: 1, time: 1 }) // Sort by date and time
+      .select('-__v');
+    
+    res.json(matches);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching matches' });
+  }
+};
