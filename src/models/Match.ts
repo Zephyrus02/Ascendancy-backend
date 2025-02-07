@@ -7,8 +7,8 @@ export interface IMatch extends Document {
     name: string;
     logo: string;
     captain: {
-      userId: string;  // Team owner's userId
-      username: string; // Team owner's username
+      userId: string;
+      username: string;
     };
   };
   team2: {
@@ -16,8 +16,8 @@ export interface IMatch extends Document {
     name: string;
     logo: string;
     captain: {
-      userId: string;  // Team owner's userId
-      username: string; // Team owner's username
+      userId: string;
+      username: string;
     };
   };
   date: string;
@@ -32,7 +32,7 @@ const matchSchema = new mongoose.Schema<IMatch>({
     name: { type: String, required: true },
     logo: { type: String, required: true },
     captain: {
-      userId: { type: String, required: true },  // Changed from id to userId
+      userId: { type: String, required: true }, 
       username: { type: String, required: true }
     }
   },

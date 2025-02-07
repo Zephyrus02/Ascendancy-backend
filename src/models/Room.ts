@@ -5,6 +5,7 @@ export interface IRoom extends Document {
   roomPasskey: string;
   adminId: string;
   adminUsername: string;
+  adminJoined: boolean;
   team1: {
     teamId: string;
     teamName: string;
@@ -26,12 +27,14 @@ const roomSchema = new mongoose.Schema<IRoom>({
   roomCode: { 
     type: String, 
     required: true, 
-    unique: true 
+    unique: true,
+    uppercase: true
   },
   roomPasskey: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    uppercase: true
   },
   adminId: {
     type: String,
@@ -40,6 +43,10 @@ const roomSchema = new mongoose.Schema<IRoom>({
   adminUsername: {
     type: String,
     required: true
+  },
+  adminJoined: {
+    type: Boolean,
+    default: false
   },
   team1: {
     teamId: { type: String, required: true },
@@ -60,6 +67,17 @@ const roomSchema = new mongoose.Schema<IRoom>({
     default: Date.now,
     expires: 3600 
   }
+});
+
+// Add pre-save middleware to ensure uppercase
+roomSchema.pre('save', function(next) {
+  if (this.roomCode) {
+    this.roomCode = this.roomCode.toUpperCase();
+  }
+  if (this.roomPasskey) {
+    this.roomPasskey = this.roomPasskey.toUpperCase();
+  }
+  next();
 });
 
 export const Room = mongoose.model<IRoom>('Room', roomSchema);

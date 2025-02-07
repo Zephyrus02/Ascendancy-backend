@@ -71,32 +71,86 @@ export const getAllRooms = async (req: Request, res: Response): Promise<void> =>
 
 export const joinRoom = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { roomKey, userId } = req.body;
-    
-    const room = await Room.findOne({ roomKey });
+    const { roomCode, roomPasskey, userId, isAdmin } = req.body;
+
+    const room = await Room.findOne({ 
+      roomCode: roomCode.toUpperCase(),
+      roomPasskey: roomPasskey.toUpperCase()
+    });
+
     if (!room) {
-      res.status(404).json({ message: 'Room not found' });
+      res.status(404).json({ message: 'Invalid room code or passkey' });
       return;
     }
 
-    // Validate user is authorized to join
-    if (room.team1.captainId !== userId && room.team2.captainId !== userId) {
-      res.status(403).json({ message: 'Unauthorized access' });
+    // Check if user is admin
+    if (isAdmin) {
+      if (room.adminId !== userId) {
+        res.status(403).json({ message: 'You are not authorized as admin' });
+        return;
+      }
+
+      room.adminJoined = true;
+      await room.save();
+
+      res.json({
+        authorized: true,
+        roomCode: room.roomCode,
+        isAdmin: true,
+        room: {
+          team1: {
+            teamName: room.team1.teamName,
+            joined: room.team1.joined
+          },
+          team2: {
+            teamName: room.team2.teamName,
+            joined: room.team2.joined
+          },
+          adminJoined: room.adminJoined,
+          adminId: room.adminId
+        }
+      });
+      return;
+    }
+
+    // Existing captain join logic
+    const isTeam1Captain = room.team1.captainId === userId;
+    const isTeam2Captain = room.team2.captainId === userId;
+
+    if (!isTeam1Captain && !isTeam2Captain) {
+      res.status(403).json({ message: 'You are not authorized to join this room' });
       return;
     }
 
     // Update joined status
-    if (room.team1.captainId === userId) {
+    if (isTeam1Captain && !room.team1.joined) {
       room.team1.joined = true;
-    } else {
+      await room.save();
+    } else if (isTeam2Captain && !room.team2.joined) {
       room.team2.joined = true;
+      await room.save();
     }
 
-    await room.save();
-    res.json(room);
+    res.json({
+      authorized: true,
+      roomCode: room.roomCode,
+      teamNumber: isTeam1Captain ? 1 : 2,
+      room: {
+        team1: {
+          teamName: room.team1.teamName,
+          joined: room.team1.joined
+        },
+        team2: {
+          teamName: room.team2.teamName,
+          joined: room.team2.joined
+        },
+        adminJoined: room.adminJoined,
+        adminId: room.adminId
+      }
+    });
   } catch (err) {
     console.error('Error joining room:', err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Error joining room' });
   }
 };
 
