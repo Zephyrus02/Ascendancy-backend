@@ -156,14 +156,36 @@ export const joinRoom = async (req: Request, res: Response): Promise<void> => {
 
 export const getRoomStatus = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { roomKey } = req.params;
-    const room = await Room.findOne({ roomKey });
+    const { roomCode } = req.params;
+    const room = await Room.findOne({ roomCode: roomCode.toUpperCase() });
+
     if (!room) {
       res.status(404).json({ message: 'Room not found' });
       return;
     }
-    res.json(room);
+
+    res.json({
+      roomCode: room.roomCode,
+      roomPasskey: room.roomPasskey,
+      adminId: room.adminId,
+      adminUsername: room.adminUsername,
+      adminJoined: room.adminJoined,
+      team1: {
+        teamId: room.team1.teamId,
+        teamName: room.team1.teamName,
+        captainId: room.team1.captainId,
+        captainUsername: room.team1.captainUsername,
+        joined: room.team1.joined
+      },
+      team2: {
+        teamId: room.team2.teamId,
+        teamName: room.team2.teamName,
+        captainId: room.team2.captainId,
+        captainUsername: room.team2.captainUsername,
+        joined: room.team2.joined
+      }
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Error fetching room status' });
   }
 };
