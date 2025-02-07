@@ -1,22 +1,23 @@
 import mongoose, { Document } from 'mongoose';
+import { User } from './User';
 
 export interface IMatch extends Document {
   team1: {
     id: string;
     name: string;
-    logo: string;  // Add logo field
+    logo: string;
     captain: {
-      id: string;
-      username: string;
+      userId: string;  // Team owner's userId
+      username: string; // Team owner's username
     };
   };
   team2: {
     id: string;
     name: string;
-    logo: string;  // Add logo field
+    logo: string;
     captain: {
-      id: string;
-      username: string;
+      userId: string;  // Team owner's userId
+      username: string; // Team owner's username
     };
   };
   date: string;
@@ -29,18 +30,18 @@ const matchSchema = new mongoose.Schema<IMatch>({
   team1: {
     id: { type: String, required: true },
     name: { type: String, required: true },
-    logo: { type: String, required: true },  // Add logo field
+    logo: { type: String, required: true },
     captain: {
-      id: { type: String, required: true },  // This will now store member _id
+      userId: { type: String, required: true },  // Changed from id to userId
       username: { type: String, required: true }
     }
   },
   team2: {
     id: { type: String, required: true },
     name: { type: String, required: true },
-    logo: { type: String, required: true },  // Add logo field
+    logo: { type: String, required: true },
     captain: {
-      id: { type: String, required: true },  // This will now store member _id
+      userId: { type: String, required: true },  // Changed from id to userId
       username: { type: String, required: true }
     }
   },

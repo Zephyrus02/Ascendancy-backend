@@ -129,3 +129,23 @@ export const getVerifiedTeams = async (req: Request, res: Response): Promise<voi
     res.status(500).json({ message: 'Error fetching teams' });
   }
 };
+
+export const getVerifiedTeamById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const team = await Team.findOne({ 
+      _id: req.params.id,
+      verified: true 
+    })
+    .select('_id teamName teamLogo members userId username')
+    .populate('members', 'name role userId _id');
+    
+    if (!team) {
+      res.status(404).json({ message: 'Verified team not found' });
+      return;
+    }
+    
+    res.json(team);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching team' });
+  }
+};
