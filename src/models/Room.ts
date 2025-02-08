@@ -76,7 +76,7 @@ const roomSchema = new mongoose.Schema<IRoom>({
   createdAt: { 
     type: Date, 
     default: Date.now,
-    expires: 3600 
+    expires: 86400 // 24 hours in seconds
   },
   pickBanState: {
     isStarted: { type: Boolean, default: false },

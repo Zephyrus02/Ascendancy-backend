@@ -258,3 +258,20 @@ export const banMap = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Error banning map' });
   }
 };
+
+export const deleteRoom = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { roomCode } = req.params;
+    const room = await Room.findOneAndDelete({ roomCode: roomCode.toUpperCase() });
+
+    if (!room) {
+      res.status(404).json({ message: 'Room not found' });
+      return;
+    }
+
+    res.json({ message: 'Room deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting room:', err);
+    res.status(500).json({ message: 'Error deleting room' });
+  }
+};
