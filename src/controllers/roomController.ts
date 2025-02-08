@@ -199,7 +199,8 @@ export const getRoomStatus = async (req: Request, res: Response): Promise<void> 
         captainId: room.team2.captainId,
         captainUsername: room.team2.captainUsername,
         joined: room.team2.joined
-      }
+      },
+      pickBanState: room.pickBanState // Add this line
     });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching room status' });
