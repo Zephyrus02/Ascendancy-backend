@@ -1,12 +1,36 @@
 import mongoose from 'mongoose';
    
 const teamMemberSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  valorantId: { type: String, required: true },
-  rank: { type: String, required: true },
-  role: { type: String, enum: ['Captain', 'Main', 'Substitute'], required: true },
-  discordId: { type: String, required: true },
-  userId: { type: String } // Add userId field
+  name: { 
+    type: String, 
+    required: function(this: any) {
+      return this.role !== 'Substitute';
+    }
+  },
+  valorantId: { 
+    type: String, 
+    required: function(this: any) {
+      return this.role !== 'Substitute';
+    }
+  },
+  rank: { 
+    type: String, 
+    required: function(this: any) {
+      return this.role !== 'Substitute';
+    }
+  },
+  discordId: { 
+    type: String, 
+    required: function(this: any) {
+      return this.role !== 'Substitute';
+    }
+  },
+  role: { 
+    type: String, 
+    enum: ['Captain', 'Main', 'Substitute'], 
+    required: true 
+  },
+  userId: { type: String }
 });
 
 const teamSchema = new mongoose.Schema({
