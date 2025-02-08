@@ -43,4 +43,14 @@ const teamSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Update the middleware to use deleteOne instead of remove
+teamSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
+  try {
+    // Add any cleanup logic here (e.g., removing related data)
+    next();
+  } catch (error) {
+    next(error as Error);
+  }
+});
+
 export const Team = mongoose.model('Team', teamSchema);
