@@ -27,6 +27,7 @@ export interface IRoom extends Document {
     currentTurn: string;
     remainingMaps: string[];
     selectedMap?: string;
+    mapVetoStarted: boolean; // Add this field
   };
 }
 
@@ -82,7 +83,8 @@ const roomSchema = new mongoose.Schema<IRoom>({
     isStarted: { type: Boolean, default: false },
     currentTurn: String,
     remainingMaps: [String],
-    selectedMap: String
+    selectedMap: String,
+    mapVetoStarted: { type: Boolean, default: false } // Add this field
   }
 });
 

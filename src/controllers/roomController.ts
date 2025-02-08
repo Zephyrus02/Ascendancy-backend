@@ -219,6 +219,7 @@ export const startPickBan = async (req: Request, res: Response): Promise<void> =
     // Initialize pick/ban state with all maps
     room.pickBanState = {
       isStarted: true,
+      mapVetoStarted: true, // Add this line
       currentTurn: room.team1.teamId,
       remainingMaps: valorantMaps.map(map => map.id),
       selectedMap: undefined
