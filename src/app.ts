@@ -20,7 +20,7 @@ app.use(cors({
     '*',
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://ascendancy-esports.me',
+    'https://www.ascendancy-esports.me',
     'https://ascendancy-backend.onrender.com'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

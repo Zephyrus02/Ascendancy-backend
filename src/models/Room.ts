@@ -6,6 +6,7 @@ export interface IRoom extends Document {
   adminId: string;
   adminUsername: string;
   adminJoined: boolean;
+  matchId: string;  // Make sure this exists
   team1: {
     teamId: string;
     teamName: string;
@@ -21,6 +22,12 @@ export interface IRoom extends Document {
     joined: boolean;
   };
   createdAt: Date;
+  pickBanState: {
+    isStarted: boolean;
+    currentTurn: string;
+    remainingMaps: string[];
+    selectedMap?: string;
+  };
 }
 
 const roomSchema = new mongoose.Schema<IRoom>({
@@ -48,6 +55,10 @@ const roomSchema = new mongoose.Schema<IRoom>({
     type: Boolean,
     default: false
   },
+  matchId: {          // Add this field
+    type: String,
+    required: true
+  },
   team1: {
     teamId: { type: String, required: true },
     teamName: { type: String, required: true },
@@ -66,6 +77,12 @@ const roomSchema = new mongoose.Schema<IRoom>({
     type: Date, 
     default: Date.now,
     expires: 3600 
+  },
+  pickBanState: {
+    isStarted: { type: Boolean, default: false },
+    currentTurn: String,
+    remainingMaps: [String],
+    selectedMap: String
   }
 });
 

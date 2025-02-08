@@ -3,6 +3,7 @@ import { Room } from '../models/Room';
 import { User } from '../models/User';
 import { Match } from '../models/Match';
 import crypto from 'crypto';
+import { valorantMaps } from '../data/maps';
 
 export const createRoom = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -36,6 +37,7 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
       roomPasskey,
       adminId,
       adminUsername: admin.username,
+      matchId, // Add this line
       team1: {
         teamId: team1.id,
         teamName: team1.name,
@@ -187,5 +189,68 @@ export const getRoomStatus = async (req: Request, res: Response): Promise<void> 
     });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching room status' });
+  }
+};
+
+export const startPickBan = async (req: Request, res: Response) => {
+  try {
+    const { roomCode } = req.params;
+    const room = await Room.findOne({ roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+
+    // Initialize pick/ban state with all maps
+    room.pickBanState = {
+      isStarted: true,
+      currentTurn: room.team1.teamId, // Random or predetermined first turn
+      remainingMaps: valorantMaps.map(map => map.id),
+      selectedMap: undefined
+    };
+
+    await room.save();
+    res.json(room.pickBanState);
+  } catch (error) {
+    res.status(500).json({ message: 'Error starting pick/ban phase' });
+  }
+};
+
+export const banMap = async (req: Request, res: Response) => {
+  try {
+    const { roomCode } = req.params;
+    const { mapId } = req.body;
+    const room = await Room.findOne({ roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+
+    // Remove the banned map
+    const mapIndex = room.pickBanState.remainingMaps.indexOf(mapId);
+    if (mapIndex > -1) {
+      room.pickBanState.remainingMaps.splice(mapIndex, 1);
+    }
+
+    // If only one map remains, it's the selected map
+    if (room.pickBanState.remainingMaps.length === 1) {
+      room.pickBanState.selectedMap = room.pickBanState.remainingMaps[0];
+      
+      // Update match with selected map
+      await Match.findByIdAndUpdate(room.matchId, {
+        selectedMap: room.pickBanState.selectedMap
+      });
+    }
+
+    // Switch turns
+    room.pickBanState.currentTurn = 
+      room.pickBanState.currentTurn === room.team1.teamId 
+        ? room.team2.teamId 
+        : room.team1.teamId;
+
+    await room.save();
+    res.json(room.pickBanState);
+  } catch (error) {
+    res.status(500).json({ message: 'Error banning map' });
   }
 };
