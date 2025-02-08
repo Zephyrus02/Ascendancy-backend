@@ -8,17 +8,28 @@ import { sendRoomNotification } from '../services/emailService';
 
 export const createRoom = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { matchId, adminId, team1, team2 } = req.body;
-    
+    const { matchId, adminId, adminUsername, team1, team2 } = req.body;
+
+    // Check if captains exist and have email addresses
+    const [team1Captain, team2Captain] = await Promise.all([
+      User.findOne({ userId: team1.captainId }),
+      User.findOne({ userId: team2.captainId })
+    ]);
+
+    if (!team1Captain?.email || !team2Captain?.email) {
+      res.status(400).json({ message: 'Captain email addresses not found' });
+      return;
+    }
+
     // Generate room codes
     const roomCode = crypto.randomBytes(3).toString('hex').toUpperCase();
     const roomPasskey = crypto.randomBytes(3).toString('hex').toUpperCase();
 
-    // Create room first
     const room = new Room({
       roomCode,
       roomPasskey,
       adminId,
+      adminUsername,
       matchId,
       team1: {
         teamId: team1.id,
@@ -38,33 +49,29 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
 
     await room.save();
 
-    // Fetch captain emails from User model
-    const [team1Captain, team2Captain] = await Promise.all([
-      User.findOne({ userId: team1.captainId }),
-      User.findOne({ userId: team2.captainId })
-    ]);
-
-    if (!team1Captain?.email || !team2Captain?.email) {
-      throw new Error('Captain email not found');
+    // Try to send emails
+    try {
+      await sendRoomNotification({
+        roomCode,
+        roomPasskey,
+        team1: {
+          captainEmail: team1Captain.email,
+          teamName: team1.name
+        },
+        team2: {
+          captainEmail: team2Captain.email,
+          teamName: team2.name
+        }
+      });
+      console.log('Email notifications sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send email notifications:', emailError);
+      // Continue with room creation even if email fails
     }
 
-    // Send email notifications
-    await sendRoomNotification({
-      roomCode: room.roomCode,
-      roomPasskey: room.roomPasskey,
-      team1: {
-        captainEmail: team1Captain.email,
-        teamName: room.team1.teamName
-      },
-      team2: {
-        captainEmail: team2Captain.email,
-        teamName: room.team2.teamName
-      }
-    });
-
     res.status(201).json(room);
-  } catch (err) {
-    console.error('Error creating room:', err);
+  } catch (error) {
+    console.error('Error creating room:', error);
     res.status(500).json({ message: 'Error creating room' });
   }
 };
@@ -199,19 +206,20 @@ export const getRoomStatus = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const startPickBan = async (req: Request, res: Response) => {
+export const startPickBan = async (req: Request, res: Response): Promise<void> => {
   try {
     const { roomCode } = req.params;
     const room = await Room.findOne({ roomCode });
 
     if (!room) {
-      return res.status(404).json({ message: 'Room not found' });
+      res.status(404).json({ message: 'Room not found' });
+      return;
     }
 
     // Initialize pick/ban state with all maps
     room.pickBanState = {
       isStarted: true,
-      currentTurn: room.team1.teamId, // Random or predetermined first turn
+      currentTurn: room.team1.teamId,
       remainingMaps: valorantMaps.map(map => map.id),
       selectedMap: undefined
     };
@@ -219,18 +227,20 @@ export const startPickBan = async (req: Request, res: Response) => {
     await room.save();
     res.json(room.pickBanState);
   } catch (error) {
-    res.status(500).json({ message: 'Error starting pick/ban phase' });
+    console.error('Error starting pick/ban:', error);
+    res.status(500).json({ message: 'Error starting pick/ban' });
   }
 };
 
-export const banMap = async (req: Request, res: Response) => {
+export const banMap = async (req: Request, res: Response): Promise<void> => {
   try {
     const { roomCode } = req.params;
     const { mapId } = req.body;
     const room = await Room.findOne({ roomCode });
 
     if (!room) {
-      return res.status(404).json({ message: 'Room not found' });
+      res.status(404).json({ message: 'Room not found' });
+      return;
     }
 
     // Remove the banned map
@@ -258,6 +268,7 @@ export const banMap = async (req: Request, res: Response) => {
     await room.save();
     res.json(room.pickBanState);
   } catch (error) {
+    console.error('Error banning map:', error);
     res.status(500).json({ message: 'Error banning map' });
   }
 };
