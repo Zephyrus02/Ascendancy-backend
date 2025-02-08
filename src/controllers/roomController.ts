@@ -29,15 +29,13 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Update match status to started
-    await Match.findByIdAndUpdate(matchId, { status: 'started' });
-
+    // Create room with initial pickBanState
     const room = new Room({
       roomCode,
       roomPasskey,
       adminId,
       adminUsername: admin.username,
-      matchId, // Add this line
+      matchId,
       team1: {
         teamId: team1.id,
         teamName: team1.name,
@@ -51,6 +49,12 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
         captainId: team2.captainId,
         captainUsername: team2Captain.username,
         joined: false
+      },
+      pickBanState: {
+        isStarted: false,
+        currentTurn: '',
+        remainingMaps: [],
+        selectedMap: undefined
       }
     });
 

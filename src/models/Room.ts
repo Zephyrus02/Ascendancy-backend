@@ -6,7 +6,7 @@ export interface IRoom extends Document {
   adminId: string;
   adminUsername: string;
   adminJoined: boolean;
-  matchId: string;  // Make sure this exists
+  matchId: string;
   team1: {
     teamId: string;
     teamName: string;
@@ -55,7 +55,7 @@ const roomSchema = new mongoose.Schema<IRoom>({
     type: Boolean,
     default: false
   },
-  matchId: {          // Add this field
+  matchId: {
     type: String,
     required: true
   },
@@ -96,5 +96,16 @@ roomSchema.pre('save', function(next) {
   }
   next();
 });
+
+// Drop the old index if it exists
+const dropIndex = async () => {
+  try {
+    await mongoose.connection.collection('rooms').dropIndex('roomKey_1');
+  } catch (err) {
+    // Index might not exist, ignore error
+  }
+};
+
+dropIndex();
 
 export const Room = mongoose.model<IRoom>('Room', roomSchema);
