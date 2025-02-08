@@ -4,61 +4,64 @@ import { User } from '../models/User';
 import { Match } from '../models/Match';
 import crypto from 'crypto';
 import { valorantMaps } from '../data/maps';
+import { sendRoomNotification } from '../services/emailService';
 
 export const createRoom = async (req: Request, res: Response): Promise<void> => {
   try {
     const { matchId, adminId, team1, team2 } = req.body;
     
-    // Generate 6 character room code and passkey
+    // Generate room codes
     const roomCode = crypto.randomBytes(3).toString('hex').toUpperCase();
     const roomPasskey = crypto.randomBytes(3).toString('hex').toUpperCase();
 
-    // Get admin username
-    const admin = await User.findOne({ userId: adminId });
-    if (!admin) {
-      res.status(404).json({ message: 'Admin not found' });
-      return;
-    }
-
-    // Get captain usernames
-    const team1Captain = await User.findOne({ userId: team1.captainId });
-    const team2Captain = await User.findOne({ userId: team2.captainId });
-
-    if (!team1Captain || !team2Captain) {
-      res.status(404).json({ message: 'One or both team captains not found' });
-      return;
-    }
-
-    // Create room with initial pickBanState
+    // Create room first
     const room = new Room({
       roomCode,
       roomPasskey,
       adminId,
-      adminUsername: admin.username,
       matchId,
       team1: {
         teamId: team1.id,
         teamName: team1.name,
         captainId: team1.captainId,
-        captainUsername: team1Captain.username,
+        captainUsername: team1.captainUsername,
         joined: false
       },
       team2: {
         teamId: team2.id,
         teamName: team2.name,
         captainId: team2.captainId,
-        captainUsername: team2Captain.username,
+        captainUsername: team2.captainUsername,
         joined: false
-      },
-      pickBanState: {
-        isStarted: false,
-        currentTurn: '',
-        remainingMaps: [],
-        selectedMap: undefined
       }
     });
 
     await room.save();
+
+    // Fetch captain emails from User model
+    const [team1Captain, team2Captain] = await Promise.all([
+      User.findOne({ userId: team1.captainId }),
+      User.findOne({ userId: team2.captainId })
+    ]);
+
+    if (!team1Captain?.email || !team2Captain?.email) {
+      throw new Error('Captain email not found');
+    }
+
+    // Send email notifications
+    await sendRoomNotification({
+      roomCode: room.roomCode,
+      roomPasskey: room.roomPasskey,
+      team1: {
+        captainEmail: team1Captain.email,
+        teamName: room.team1.teamName
+      },
+      team2: {
+        captainEmail: team2Captain.email,
+        teamName: room.team2.teamName
+      }
+    });
+
     res.status(201).json(room);
   } catch (err) {
     console.error('Error creating room:', err);
