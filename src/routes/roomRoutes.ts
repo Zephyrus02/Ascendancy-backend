@@ -6,9 +6,7 @@ import {
   getRoomStatus, 
   deleteRoom,
   startPickBan,
-  banMap,
-  initiateSideSelect,
-  selectSide
+  banMap
 } from '../controllers/roomController';
 
 const router: Router = express.Router();
@@ -23,7 +21,5 @@ router.delete('/:roomCode', deleteRoom as RequestHandler);
 // Pick/Ban routes
 router.post('/:roomCode/start-pickban', startPickBan as RequestHandler);
 router.post('/:roomCode/ban-map', banMap as RequestHandler);
-router.post('/:roomCode/initiate-side-select', initiateSideSelect as RequestHandler);
-router.post('/:roomCode/select-side', selectSide as RequestHandler);
 
 export default router;

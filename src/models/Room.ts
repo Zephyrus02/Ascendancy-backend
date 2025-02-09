@@ -36,11 +36,11 @@ export interface IRoom extends Document {
   pickBanState: {
     isStarted: boolean;
     currentTurn: string;
-    firstPickTeam: string; // Add this field
-    remainingMaps: ValorantMap[]; // Changed from Map[] to ValorantMap[]
-    selectedMap?: ValorantMap;    // Changed from Map to ValorantMap
+    firstPickTeam: string;
+    remainingMaps: ValorantMap[];
+    selectedMap?: ValorantMap;
     mapVetoStarted: boolean;
-    mapStatuses: MapStatus;  // Add this field
+    mapStatuses: MapStatus;
     sideSelect?: SideSelectState;
   };
 }
@@ -96,14 +96,14 @@ const roomSchema = new mongoose.Schema<IRoom>({
   pickBanState: {
     isStarted: { type: Boolean, default: false },
     currentTurn: String,
-    firstPickTeam: String, // Add this field
+    firstPickTeam: String,
     remainingMaps: [Object],
     selectedMap: Object,
     mapVetoStarted: { type: Boolean, default: false },
     mapStatuses: { 
       type: Object, 
       default: {} 
-    },  // Change from Map to Object
+    },
     sideSelect: {
       type: Object,
       default: {}
