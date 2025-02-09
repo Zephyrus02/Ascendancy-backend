@@ -59,3 +59,29 @@ export const getPendingMatches = async (req: Request, res: Response): Promise<vo
     res.status(500).json({ message: 'Error fetching matches' });
   }
 };
+
+export const updateMatchScore = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { matchId } = req.params;
+    const { team1Score, team2Score } = req.body;
+
+    const match = await Match.findByIdAndUpdate(
+      matchId,
+      { 
+        scores: { team1Score, team2Score },
+        status: 'completed'
+      },
+      { new: true }
+    );
+
+    if (!match) {
+      res.status(404).json({ message: 'Match not found' });
+      return;
+    }
+
+    res.json(match);
+  } catch (error) {
+    console.error('Error updating match score:', error);
+    res.status(500).json({ message: 'Error updating match score' });
+  }
+};

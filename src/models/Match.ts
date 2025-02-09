@@ -24,6 +24,10 @@ export interface IMatch extends Document {
   time: string;
   round: number;
   status: 'yet to start' | 'ongoing' | 'completed';
+  scores?: {
+    team1Score: number;
+    team2Score: number;
+  };
 }
 
 const matchSchema = new mongoose.Schema<IMatch>({
@@ -52,6 +56,10 @@ const matchSchema = new mongoose.Schema<IMatch>({
     type: String,
     enum: ['yet to start', 'ongoing', 'completed'],
     default: 'yet to start'
+  },
+  scores: {
+    team1Score: { type: Number, default: 0 },
+    team2Score: { type: Number, default: 0 }
   }
 }, {
   timestamps: true
