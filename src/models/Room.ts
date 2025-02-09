@@ -5,12 +5,6 @@ interface MapStatus {
   [key: string]: 'available' | 'picked' | 'banned';
 }
 
-interface SideSelectState {
-  isStarted: boolean;
-  currentTurn: string;
-  selectedSide?: 'attack' | 'defend';
-}
-
 interface PickBanState {
   isStarted: boolean;
   currentTurn: string;
@@ -19,18 +13,6 @@ interface PickBanState {
   selectedMap?: ValorantMap;
   mapVetoStarted: boolean;
   mapStatuses: MapStatus;
-  selectedSide?: {
-    teamId: string;
-    side: 'attack' | 'defend';
-  };
-  sideSelect?: {
-    isStarted: boolean;
-    currentTurn: string;
-    selectedSide?: {
-      teamId: string;
-      side: 'attack' | 'defend';
-    };
-  };
 }
 
 export interface IRoom extends Document {
@@ -116,18 +98,6 @@ const roomSchema = new mongoose.Schema<IRoom>({
     mapStatuses: { 
       type: Object, 
       default: {} 
-    },
-    selectedSide: {
-      teamId: String,
-      side: { type: String, enum: ['attack', 'defend'] }
-    },
-    sideSelect: {
-      isStarted: { type: Boolean, default: false },
-      currentTurn: String,
-      selectedSide: {
-        teamId: String,
-        side: { type: String, enum: ['attack', 'defend'] }
-      }
     }
   }
 });
