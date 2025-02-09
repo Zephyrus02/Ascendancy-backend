@@ -65,19 +65,16 @@ export const updateMatchScore = async (req: Request, res: Response): Promise<voi
     const { matchId } = req.params;
     const { team1Score, team2Score } = req.body;
 
-    const match = await Match.findByIdAndUpdate(
-      matchId,
-      { 
-        scores: { team1Score, team2Score },
-        status: 'completed'
-      },
-      { new: true }
-    );
-
+    const match = await Match.findById(matchId);
     if (!match) {
       res.status(404).json({ message: 'Match not found' });
       return;
     }
+
+    // Update scores and set status to completed
+    match.scores = { team1Score, team2Score };
+    match.status = 'completed';
+    await match.save();
 
     res.json(match);
   } catch (error) {

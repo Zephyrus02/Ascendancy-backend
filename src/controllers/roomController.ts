@@ -22,8 +22,8 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Update match status
-    match.status = 'yet to start';
+    // Update match status to 'ongoing' when room is created
+    match.status = 'ongoing'; // Changed from 'started' to 'ongoing'
     await match.save();
 
     // Check if captains exist and have email addresses
