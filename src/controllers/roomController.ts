@@ -300,18 +300,15 @@ export const banMap = async (req: Request, res: Response): Promise<void> => {
       room.pickBanState.selectedMap = finalMap;
       room.pickBanState.mapStatuses[finalMap.id] = 'picked';
       
-      // Second team gets first pick for side selection
-      room.pickBanState.sideSelect = {
-        isStarted: true,
-        currentTurn: teamId === room.team1.teamId ? room.team2.teamId : room.team1.teamId,
-        selectedSide: undefined
-      };
+      // The team that went second in map veto gets first pick for side selection
+      const secondPickTeam = teamId === room.team1.teamId ? room.team2.teamId : room.team1.teamId;
+      room.pickBanState.currentTurn = secondPickTeam;
       
       await Match.findByIdAndUpdate(room.matchId, {
         selectedMap: finalMap.id
       });
     } else {
-      // Switch turns only if map veto continues
+      // Switch turns for map veto
       room.pickBanState.currentTurn = 
         room.pickBanState.currentTurn === room.team1.teamId 
           ? room.team2.teamId 
