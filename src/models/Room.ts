@@ -11,6 +11,28 @@ interface SideSelectState {
   selectedSide?: 'attack' | 'defend';
 }
 
+interface PickBanState {
+  isStarted: boolean;
+  currentTurn: string;
+  firstPickTeam: string;
+  remainingMaps: ValorantMap[];
+  selectedMap?: ValorantMap;
+  mapVetoStarted: boolean;
+  mapStatuses: MapStatus;
+  selectedSide?: {
+    teamId: string;
+    side: 'attack' | 'defend';
+  };
+  sideSelect?: {
+    isStarted: boolean;
+    currentTurn: string;
+    selectedSide?: {
+      teamId: string;
+      side: 'attack' | 'defend';
+    };
+  };
+}
+
 export interface IRoom extends Document {
   roomCode: string;
   roomPasskey: string;
@@ -33,20 +55,7 @@ export interface IRoom extends Document {
     joined: boolean;
   };
   createdAt: Date;
-  pickBanState: {
-    isStarted: boolean;
-    currentTurn: string;
-    firstPickTeam: string;
-    remainingMaps: ValorantMap[];
-    selectedMap?: ValorantMap;
-    mapVetoStarted: boolean;
-    mapStatuses: MapStatus;
-    sideSelect?: SideSelectState;
-    selectedSide?: {
-      teamId: string;
-      side: 'attack' | 'defend';
-    };
-  };
+  pickBanState: PickBanState;
 }
 
 const roomSchema = new mongoose.Schema<IRoom>({
@@ -108,13 +117,17 @@ const roomSchema = new mongoose.Schema<IRoom>({
       type: Object, 
       default: {} 
     },
-    sideSelect: {
-      type: Object,
-      default: {}
-    },
     selectedSide: {
       teamId: String,
-      side: String
+      side: { type: String, enum: ['attack', 'defend'] }
+    },
+    sideSelect: {
+      isStarted: { type: Boolean, default: false },
+      currentTurn: String,
+      selectedSide: {
+        teamId: String,
+        side: { type: String, enum: ['attack', 'defend'] }
+      }
     }
   }
 });

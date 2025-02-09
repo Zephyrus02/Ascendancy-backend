@@ -11,6 +11,28 @@ interface MapStatus {
   [key: string]: 'available' | 'picked' | 'banned';
 }
 
+export interface PickBanState {
+  isStarted: boolean;
+  currentTurn: string;
+  firstPickTeam: string;
+  remainingMaps: ValorantMap[];
+  selectedMap?: ValorantMap;
+  mapVetoStarted: boolean;
+  mapStatuses: MapStatus;
+  selectedSide?: {
+    teamId: string;
+    side: 'attack' | 'defend';
+  };
+  sideSelect?: {
+    isStarted: boolean;
+    currentTurn: string;
+    selectedSide?: {
+      teamId: string;
+      side: 'attack' | 'defend';
+    };
+  };
+}
+
 export const createRoom = async (req: Request, res: Response): Promise<void> => {
   try {
     const { matchId, adminId, adminUsername, team1, team2 } = req.body;
@@ -300,15 +322,18 @@ export const banMap = async (req: Request, res: Response): Promise<void> => {
       room.pickBanState.selectedMap = finalMap;
       room.pickBanState.mapStatuses[finalMap.id] = 'picked';
       
-      // The team that went second in map veto gets first pick for side selection
-      const secondPickTeam = teamId === room.team1.teamId ? room.team2.teamId : room.team1.teamId;
-      room.pickBanState.currentTurn = secondPickTeam;
+      // Second team gets first pick for side selection
+      room.pickBanState.sideSelect = {
+        isStarted: true,
+        currentTurn: teamId === room.team1.teamId ? room.team2.teamId : room.team1.teamId,
+        selectedSide: undefined
+      };
       
       await Match.findByIdAndUpdate(room.matchId, {
         selectedMap: finalMap.id
       });
     } else {
-      // Switch turns for map veto
+      // Switch turns only if map veto continues
       room.pickBanState.currentTurn = 
         room.pickBanState.currentTurn === room.team1.teamId 
           ? room.team2.teamId 
