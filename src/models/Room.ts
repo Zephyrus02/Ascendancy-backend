@@ -36,6 +36,7 @@ export interface IRoom extends Document {
   pickBanState: {
     isStarted: boolean;
     currentTurn: string;
+    firstPickTeam: string; // Add this field
     remainingMaps: ValorantMap[]; // Changed from Map[] to ValorantMap[]
     selectedMap?: ValorantMap;    // Changed from Map to ValorantMap
     mapVetoStarted: boolean;
@@ -95,6 +96,7 @@ const roomSchema = new mongoose.Schema<IRoom>({
   pickBanState: {
     isStarted: { type: Boolean, default: false },
     currentTurn: String,
+    firstPickTeam: String, // Add this field
     remainingMaps: [Object],
     selectedMap: Object,
     mapVetoStarted: { type: Boolean, default: false },

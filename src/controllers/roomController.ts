@@ -242,8 +242,8 @@ export const startPickBan = async (req: Request, res: Response): Promise<void> =
     // Randomly select first team
     const firstTeam = Math.random() < 0.5 ? room.team1 : room.team2;
 
-    // Initialize map statuses as plain object
-    const initialMapStatuses: { [key: string]: 'available' | 'picked' | 'banned' } = {};
+    // Initialize map statuses
+    const initialMapStatuses: MapStatus = {};
     valorantMaps.forEach(map => {
       initialMapStatuses[map.id] = 'available';
     });
@@ -252,6 +252,7 @@ export const startPickBan = async (req: Request, res: Response): Promise<void> =
       isStarted: true,
       mapVetoStarted: true,
       currentTurn: firstTeam.teamId,
+      firstPickTeam: firstTeam.teamId, // Store who got first pick
       remainingMaps: valorantMaps,
       selectedMap: undefined,
       mapStatuses: initialMapStatuses
@@ -286,7 +287,7 @@ export const banMap = async (req: Request, res: Response): Promise<void> => {
     room.pickBanState.remainingMaps = room.pickBanState.remainingMaps
       .filter(map => map.id !== mapId);
 
-    // Update map status - Store as plain object
+    // Update map status
     room.pickBanState.mapStatuses = {
       ...(room.pickBanState.mapStatuses || {}),
       [mapId]: 'banned'
@@ -298,17 +299,18 @@ export const banMap = async (req: Request, res: Response): Promise<void> => {
       room.pickBanState.selectedMap = finalMap;
       room.pickBanState.mapStatuses[finalMap.id] = 'picked';
       
-      // Update match with selected map
+      // Initialize side selection - give first pick to the team that didn't get first map ban
+      const firstPickTeamId = room.pickBanState.firstPickTeam; // Store who got first map pick
+      room.pickBanState.sideSelect = {
+        isStarted: true,
+        currentTurn: firstPickTeamId === room.team1.teamId ? room.team2.teamId : room.team1.teamId,
+        selectedSide: undefined
+      };
+
       await Match.findByIdAndUpdate(room.matchId, {
         selectedMap: finalMap.id
       });
     }
-
-    // Switch turns
-    room.pickBanState.currentTurn = 
-      room.pickBanState.currentTurn === room.team1.teamId 
-        ? room.team2.teamId 
-        : room.team1.teamId;
 
     await room.save();
     res.json(room.pickBanState);
