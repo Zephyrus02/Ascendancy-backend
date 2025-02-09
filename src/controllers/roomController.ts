@@ -3,8 +3,13 @@ import { Room } from '../models/Room';
 import { User } from '../models/User';
 import { Match } from '../models/Match';
 import crypto from 'crypto';
-import { valorantMaps } from '../data/maps';
+import { ValorantMap, valorantMaps } from '../data/maps';  // Updated import
 import { sendRoomNotification } from '../services/emailService';
+
+// Add the MapStatus interface
+interface MapStatus {
+  [key: string]: 'available' | 'picked' | 'banned';
+}
 
 export const createRoom = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -44,6 +49,23 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
         captainId: team2.captainId,
         captainUsername: team2.captainUsername,
         joined: false
+      },
+      pickBanState: {
+        isStarted: false,
+        mapVetoStarted: false,
+        currentTurn: team1.id,
+        remainingMaps: [
+          valorantMaps.find(m => m.id === 'ascent'),
+          valorantMaps.find(m => m.id === 'bind'),
+          valorantMaps.find(m => m.id === 'haven'),
+          valorantMaps.find(m => m.id === 'icebox'),
+          valorantMaps.find(m => m.id === 'split'),
+          valorantMaps.find(m => m.id === 'breeze'),
+          valorantMaps.find(m => m.id === 'fracture'),
+          valorantMaps.find(m => m.id === 'lotus'),
+          valorantMaps.find(m => m.id === 'pearl')
+        ].filter(Boolean) as ValorantMap[], // Changed from Map[] to ValorantMap[]
+        selectedMap: undefined
       }
     });
 
@@ -217,13 +239,22 @@ export const startPickBan = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // Initialize pick/ban state with all maps
+    // Randomly select first team
+    const firstTeam = Math.random() < 0.5 ? room.team1 : room.team2;
+
+    // Initialize map statuses
+    const initialMapStatuses: MapStatus = {};
+    valorantMaps.forEach(map => {
+      initialMapStatuses[map.id] = 'available';
+    });
+
     room.pickBanState = {
       isStarted: true,
-      mapVetoStarted: true, // Add this line
-      currentTurn: room.team1.teamId,
-      remainingMaps: valorantMaps.map(map => map.id),
-      selectedMap: undefined
+      mapVetoStarted: true,
+      currentTurn: firstTeam.teamId,
+      remainingMaps: valorantMaps,
+      selectedMap: undefined,
+      mapStatuses: initialMapStatuses
     };
 
     await room.save();
@@ -237,7 +268,7 @@ export const startPickBan = async (req: Request, res: Response): Promise<void> =
 export const banMap = async (req: Request, res: Response): Promise<void> => {
   try {
     const { roomCode } = req.params;
-    const { mapId } = req.body;
+    const { mapId, teamId } = req.body;
     const room = await Room.findOne({ roomCode });
 
     if (!room) {
@@ -245,19 +276,31 @@ export const banMap = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Remove the banned map
-    const mapIndex = room.pickBanState.remainingMaps.indexOf(mapId);
-    if (mapIndex > -1) {
-      room.pickBanState.remainingMaps.splice(mapIndex, 1);
+    // Verify it's the team's turn
+    if (room.pickBanState.currentTurn !== teamId) {
+      res.status(403).json({ message: "Not your turn" });
+      return;
     }
+
+    // Remove the banned map
+    room.pickBanState.remainingMaps = room.pickBanState.remainingMaps
+      .filter(map => map.id !== mapId);
+
+    // Update map status
+    room.pickBanState.mapStatuses = {
+      ...room.pickBanState.mapStatuses,
+      [mapId]: 'banned'
+    };
 
     // If only one map remains, it's the selected map
     if (room.pickBanState.remainingMaps.length === 1) {
-      room.pickBanState.selectedMap = room.pickBanState.remainingMaps[0];
+      const finalMap = room.pickBanState.remainingMaps[0];
+      room.pickBanState.selectedMap = finalMap;
+      room.pickBanState.mapStatuses[finalMap.id] = 'picked';
       
       // Update match with selected map
       await Match.findByIdAndUpdate(room.matchId, {
-        selectedMap: room.pickBanState.selectedMap
+        selectedMap: finalMap.id
       });
     }
 

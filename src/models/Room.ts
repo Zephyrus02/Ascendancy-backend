@@ -1,4 +1,9 @@
 import mongoose, { Document } from 'mongoose';
+import { ValorantMap } from '../data/maps';  // Updated import
+
+interface MapStatus {
+  [key: string]: 'available' | 'picked' | 'banned';
+}
 
 export interface IRoom extends Document {
   roomCode: string;
@@ -25,9 +30,10 @@ export interface IRoom extends Document {
   pickBanState: {
     isStarted: boolean;
     currentTurn: string;
-    remainingMaps: string[];
-    selectedMap?: string;
-    mapVetoStarted: boolean; // Add this field
+    remainingMaps: ValorantMap[]; // Changed from Map[] to ValorantMap[]
+    selectedMap?: ValorantMap;    // Changed from Map to ValorantMap
+    mapVetoStarted: boolean;
+    mapStatuses: MapStatus;  // Add this field
   };
 }
 
@@ -82,9 +88,10 @@ const roomSchema = new mongoose.Schema<IRoom>({
   pickBanState: {
     isStarted: { type: Boolean, default: false },
     currentTurn: String,
-    remainingMaps: [String],
-    selectedMap: String,
-    mapVetoStarted: { type: Boolean, default: false } // Add this field
+    remainingMaps: [Object],
+    selectedMap: Object,
+    mapVetoStarted: { type: Boolean, default: false },
+    mapStatuses: { type: Map, of: String, default: {} }  // Add this field
   }
 });
 
