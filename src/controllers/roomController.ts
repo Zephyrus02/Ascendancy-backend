@@ -298,18 +298,24 @@ export const banMap = async (req: Request, res: Response): Promise<void> => {
       const finalMap = room.pickBanState.remainingMaps[0];
       room.pickBanState.selectedMap = finalMap;
       room.pickBanState.mapStatuses[finalMap.id] = 'picked';
-
-      // Update match with selected map
+      
+      // Second team gets first pick for side selection
+      room.pickBanState.sideSelect = {
+        isStarted: true,
+        currentTurn: teamId === room.team1.teamId ? room.team2.teamId : room.team1.teamId,
+        selectedSide: undefined
+      };
+      
       await Match.findByIdAndUpdate(room.matchId, {
         selectedMap: finalMap.id
       });
+    } else {
+      // Switch turns only if map veto continues
+      room.pickBanState.currentTurn = 
+        room.pickBanState.currentTurn === room.team1.teamId 
+          ? room.team2.teamId 
+          : room.team1.teamId;
     }
-
-    // Switch turns
-    room.pickBanState.currentTurn = 
-      room.pickBanState.currentTurn === room.team1.teamId 
-        ? room.team2.teamId 
-        : room.team1.teamId;
 
     await room.save();
     res.json(room.pickBanState);
