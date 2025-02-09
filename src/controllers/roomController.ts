@@ -320,6 +320,11 @@ export const banMap = async (req: Request, res: Response): Promise<void> => {
       room.pickBanState.selectedMap = finalMap;
       room.pickBanState.mapStatuses[finalMap.id] = 'picked';
       
+      // Set currentTurn for side selection - team that didn't get first pick gets to pick sides
+      room.pickBanState.currentTurn = room.pickBanState.firstPickTeam === room.team1.teamId 
+        ? room.team2.teamId 
+        : room.team1.teamId;
+      
       await Match.findByIdAndUpdate(room.matchId, {
         selectedMap: finalMap.id,
         status: 'ongoing'
