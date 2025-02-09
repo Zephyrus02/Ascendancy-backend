@@ -5,6 +5,12 @@ interface MapStatus {
   [key: string]: 'available' | 'picked' | 'banned';
 }
 
+interface SideSelectState {
+  isStarted: boolean;
+  currentTurn: string;
+  selectedSide?: 'attack' | 'defend';
+}
+
 export interface IRoom extends Document {
   roomCode: string;
   roomPasskey: string;
@@ -34,6 +40,7 @@ export interface IRoom extends Document {
     selectedMap?: ValorantMap;    // Changed from Map to ValorantMap
     mapVetoStarted: boolean;
     mapStatuses: MapStatus;  // Add this field
+    sideSelect?: SideSelectState;
   };
 }
 
@@ -94,7 +101,11 @@ const roomSchema = new mongoose.Schema<IRoom>({
     mapStatuses: { 
       type: Object, 
       default: {} 
-    }  // Change from Map to Object
+    },  // Change from Map to Object
+    sideSelect: {
+      type: Object,
+      default: {}
+    }
   }
 });
 

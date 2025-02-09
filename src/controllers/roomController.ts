@@ -334,3 +334,67 @@ export const deleteRoom = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ message: 'Error deleting room' });
   }
 };
+
+export const initiateSideSelect = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { roomCode } = req.params;
+    const room = await Room.findOne({ roomCode });
+
+    if (!room) {
+      res.status(404).json({ message: 'Room not found' });
+      return;
+    }
+
+    // Second team gets first pick for side selection
+    const firstToPickSide = room.pickBanState.currentTurn === room.team1.teamId 
+      ? room.team2.teamId 
+      : room.team1.teamId;
+
+    room.pickBanState.sideSelect = {
+      isStarted: true,
+      currentTurn: firstToPickSide,
+      selectedSide: undefined
+    };
+
+    await room.save();
+    res.json(room.pickBanState);
+  } catch (error) {
+    console.error('Error starting side selection:', error);
+    res.status(500).json({ message: 'Error starting side selection' });
+  }
+};
+
+export const selectSide = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { roomCode } = req.params;
+    const { teamId, side } = req.body;
+    const room = await Room.findOne({ roomCode });
+
+    if (!room?.pickBanState?.sideSelect) {
+      res.status(400).json({ message: 'Side selection not initiated' });
+      return;
+    }
+
+    if (room.pickBanState.sideSelect.currentTurn !== teamId) {
+      res.status(403).json({ message: 'Not your turn' });
+      return;
+    }
+
+    room.pickBanState.sideSelect.selectedSide = side;
+    await room.save();
+
+    // Update match with side selection
+    await Match.findByIdAndUpdate(room.matchId, {
+      sideSelection: {
+        [teamId]: side,
+        [teamId === room.team1.teamId ? room.team2.teamId : room.team1.teamId]: 
+          side === 'attack' ? 'defend' : 'attack'
+      }
+    });
+
+    res.json(room.pickBanState);
+  } catch (error) {
+    console.error('Error selecting side:', error);
+    res.status(500).json({ message: 'Error selecting side' });
+  }
+};
