@@ -13,6 +13,10 @@ interface PickBanState {
   selectedMap?: ValorantMap;
   mapVetoStarted: boolean;
   mapStatuses: MapStatus;
+  selectedSide?: {
+    teamId: string;
+    side: 'attack' | 'defend';
+  };
 }
 
 export interface IRoom extends Document {
@@ -98,6 +102,13 @@ const roomSchema = new mongoose.Schema<IRoom>({
     mapStatuses: { 
       type: Object, 
       default: {} 
+    },
+    selectedSide: {
+      teamId: String,
+      side: { 
+        type: String, 
+        enum: ['attack', 'defend'] 
+      }
     }
   }
 });

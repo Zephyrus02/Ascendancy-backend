@@ -340,6 +340,31 @@ export const banMap = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const selectSide = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { roomCode } = req.params;
+    const { teamId, side } = req.body;
+    const room = await Room.findOne({ roomCode });
+
+    if (!room) {
+      res.status(404).json({ message: 'Room not found' });
+      return;
+    }
+
+    // Save the side selection
+    room.pickBanState.selectedSide = {
+      teamId,
+      side
+    };
+
+    await room.save();
+    res.json(room.pickBanState);
+  } catch (error) {
+    console.error('Error selecting side:', error);
+    res.status(500).json({ message: 'Error selecting side' });
+  }
+};
+
 export const deleteRoom = async (req: Request, res: Response): Promise<void> => {
   try {
     const { roomCode } = req.params;
