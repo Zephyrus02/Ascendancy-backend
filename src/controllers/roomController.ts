@@ -349,6 +349,9 @@ export const selectSide = async (req: Request, res: Response): Promise<void> => 
   try {
     const { roomCode } = req.params;
     const { teamId, side } = req.body;
+    
+    console.log('Selecting side:', { roomCode, teamId, side }); // Add logging
+    
     const room = await Room.findOne({ roomCode });
 
     if (!room) {

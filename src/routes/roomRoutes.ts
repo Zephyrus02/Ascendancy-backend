@@ -12,6 +12,9 @@ import {
 
 const router: Router = express.Router();
 
+// Update routes to properly handle side selection
+router.post('/:roomCode/select-side', selectSide as RequestHandler);
+
 // Game room routes
 router.post('/create', createRoom as RequestHandler);
 router.get('/', getAllRooms as RequestHandler);
@@ -22,6 +25,5 @@ router.delete('/:roomCode', deleteRoom as RequestHandler);
 // Pick/Ban routes
 router.post('/:roomCode/start-pickban', startPickBan as RequestHandler);
 router.post('/:roomCode/ban-map', banMap as RequestHandler);
-router.post('/:roomCode/select-side', selectSide as RequestHandler);
 
 export default router;
