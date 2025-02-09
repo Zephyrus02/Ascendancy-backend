@@ -91,7 +91,10 @@ const roomSchema = new mongoose.Schema<IRoom>({
     remainingMaps: [Object],
     selectedMap: Object,
     mapVetoStarted: { type: Boolean, default: false },
-    mapStatuses: { type: Map, of: String, default: {} }  // Add this field
+    mapStatuses: { 
+      type: Object, 
+      default: {} 
+    }  // Change from Map to Object
   }
 });
 

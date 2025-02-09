@@ -242,8 +242,8 @@ export const startPickBan = async (req: Request, res: Response): Promise<void> =
     // Randomly select first team
     const firstTeam = Math.random() < 0.5 ? room.team1 : room.team2;
 
-    // Initialize map statuses
-    const initialMapStatuses: MapStatus = {};
+    // Initialize map statuses as plain object
+    const initialMapStatuses: { [key: string]: 'available' | 'picked' | 'banned' } = {};
     valorantMaps.forEach(map => {
       initialMapStatuses[map.id] = 'available';
     });
@@ -286,9 +286,9 @@ export const banMap = async (req: Request, res: Response): Promise<void> => {
     room.pickBanState.remainingMaps = room.pickBanState.remainingMaps
       .filter(map => map.id !== mapId);
 
-    // Update map status
+    // Update map status - Store as plain object
     room.pickBanState.mapStatuses = {
-      ...room.pickBanState.mapStatuses,
+      ...(room.pickBanState.mapStatuses || {}),
       [mapId]: 'banned'
     };
 
