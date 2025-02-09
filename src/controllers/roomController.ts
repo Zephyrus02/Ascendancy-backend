@@ -15,6 +15,17 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
   try {
     const { matchId, adminId, adminUsername, team1, team2 } = req.body;
 
+    // Check if match exists and update its status
+    const match = await Match.findById(matchId);
+    if (!match) {
+      res.status(404).json({ message: 'Match not found' });
+      return;
+    }
+
+    // Update match status
+    match.status = 'yet to start';
+    await match.save();
+
     // Check if captains exist and have email addresses
     const [team1Captain, team2Captain] = await Promise.all([
       User.findOne({ userId: team1.captainId }),
@@ -54,17 +65,7 @@ export const createRoom = async (req: Request, res: Response): Promise<void> => 
         isStarted: false,
         mapVetoStarted: false,
         currentTurn: team1.id,
-        remainingMaps: [
-          valorantMaps.find(m => m.id === 'ascent'),
-          valorantMaps.find(m => m.id === 'bind'),
-          valorantMaps.find(m => m.id === 'haven'),
-          valorantMaps.find(m => m.id === 'icebox'),
-          valorantMaps.find(m => m.id === 'split'),
-          valorantMaps.find(m => m.id === 'breeze'),
-          valorantMaps.find(m => m.id === 'fracture'),
-          valorantMaps.find(m => m.id === 'lotus'),
-          valorantMaps.find(m => m.id === 'pearl')
-        ].filter(Boolean) as ValorantMap[], // Changed from Map[] to ValorantMap[]
+        remainingMaps: valorantMaps,
         selectedMap: undefined
       }
     });
