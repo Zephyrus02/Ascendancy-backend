@@ -371,25 +371,26 @@ export const selectSide = async (req: Request, res: Response): Promise<void> => 
     const { teamId, side } = req.body;
     const room = await Room.findOne({ roomCode });
 
-    if (!room?.pickBanState?.sideSelect) {
-      res.status(400).json({ message: 'Side selection not initiated' });
+    if (!room) {
+      res.status(404).json({ message: 'Room not found' });
       return;
     }
 
-    if (room.pickBanState.sideSelect.currentTurn !== teamId) {
-      res.status(403).json({ message: 'Not your turn' });
+    // Verify this team should be selecting side (team that went second in map veto)
+    if (room.pickBanState.firstPickTeam === teamId) {
+      res.status(403).json({ message: 'Not authorized to select side' });
       return;
     }
 
-    room.pickBanState.sideSelect.selectedSide = side;
+    // Save the side selection
+    room.pickBanState.selectedSide = { teamId, side };
     await room.save();
 
     // Update match with side selection
     await Match.findByIdAndUpdate(room.matchId, {
       sideSelection: {
         [teamId]: side,
-        [teamId === room.team1.teamId ? room.team2.teamId : room.team1.teamId]: 
-          side === 'attack' ? 'defend' : 'attack'
+        [room.pickBanState.firstPickTeam]: side === 'attack' ? 'defend' : 'attack'
       }
     });
 

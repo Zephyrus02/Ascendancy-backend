@@ -42,6 +42,10 @@ export interface IRoom extends Document {
     mapVetoStarted: boolean;
     mapStatuses: MapStatus;
     sideSelect?: SideSelectState;
+    selectedSide?: {
+      teamId: string;
+      side: 'attack' | 'defend';
+    };
   };
 }
 
@@ -107,6 +111,10 @@ const roomSchema = new mongoose.Schema<IRoom>({
     sideSelect: {
       type: Object,
       default: {}
+    },
+    selectedSide: {
+      teamId: String,
+      side: String
     }
   }
 });
